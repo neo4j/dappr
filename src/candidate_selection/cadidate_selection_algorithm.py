@@ -3,6 +3,7 @@ import networkx as nx
 
 EdgeList = list[tuple[int, int]]
 
+# Interface for candidate selection algorithms
 class CandidateSelectionAlgorithm(ABC):
     __n_scanned: int
     input_params: dict

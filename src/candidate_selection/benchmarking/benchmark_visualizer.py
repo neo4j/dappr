@@ -255,16 +255,6 @@ class BenchmarkVisualizer:
     def get_label_name(self, algo_name: str, data: list):
         algo_data = list(filter(lambda x: x["method"] == algo_name, data))
 
-        # if(algo_name == "RandomWalkRestartsPregel"):
-        #     return "DAPPR"
-
-        # if(algo_name == "Knn" and len(algo_data) > 0):
-            
-        #     if "clf_best_accuracy" in algo_data[0]["parameters"]:
-        #         best_acc = algo_data[0]['parameters']['clf_best_accuracy']
-
-        #         return f"Knn (model accuracy: {round(best_acc, 2)})"
-        
         return algo_name
 
     def get_xy(self, x_name: str, y_name: str, dataset: Datasets, algorithm_names: list[str] | None = None):
@@ -328,9 +318,7 @@ class BenchmarkVisualizer:
         return results
 
     def get_line_style(self, label: str):
-        if label == "RandomWalkRestartsPregel":
-            return "-", "P", "orange"
-        elif label == "Dappr":
+        if label == "Dappr":
             return "--", "v", "blue"
         elif label == "Bfs":
             return ":", "^", "red"

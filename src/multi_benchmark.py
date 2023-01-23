@@ -7,10 +7,8 @@ import os
 sys.path.append('candidate_selection')
 sys.path.append('./')
 
-from candidate_selection.random_walk_restarts.dappr import Dappr
+from candidate_selection.dappr.dappr import Dappr
 from candidate_selection.link_waldo.link_waldo import LinkWaldo
-from candidate_selection.random_walk_restarts.random_walk_restarts_pregel import RandomWalkRestartsPregel
-from candidate_selection.random_walk_restarts.random_walk_restarts_pregel_sbm import RandomWalkRestartsPregelSBM
 
 import collections.abc # Manually overwrite import due to error in LinkWaldo.Bine.mode.Graph - incompatible with Python 3.10
 collections.Iterable = collections.abc.Iterable
@@ -23,10 +21,6 @@ from candidate_selection.benchmarking.benchmark import Benchmark
 from candidate_selection.knn.knn import Knn
 from candidate_selection.knn.knn_simple import KnnSimple
 from candidate_selection.bfs.bfs import Bfs
-from candidate_selection.personalized_page_rank.personalized_page_rank import PersonalizedPageRank
-from candidate_selection.random_walk_restarts.random_walk_restarts import RandomWalkRestarts
-from candidate_selection.random_walk_restarts.random_walk_restarts_global_pool import RandomWalkRestartsGlobalPool
-from candidate_selection.random_walk_restarts.random_walk_restarts_sbm import RandomWalkRestartsSBM
 import multiprocessing
 import pickle
 from prediction_models.oracle_fn import select_oracle
@@ -228,36 +222,9 @@ def multirun(
                         bfs_benchmark = Benchmark(bfs, G, G_test, h, positive_test_edges, DATASET.name)
                         bfs_benchmark.run()
                         bfs_benchmark.write_results_to_file(out_file_name)
-
-
-                    if algorithm_options["run_personalized_page_rank"]:
-                        K = int(np.ceil(edges_to_find / G_test.number_of_nodes()))
-                        pers_page_rank = PersonalizedPageRank(G_test, K, parallel=True)
-                        pers_page_rank_benchmark = Benchmark(pers_page_rank, G, G_test, h, positive_test_edges, DATASET.name)
-                        pers_page_rank_benchmark.run()
-                        pers_page_rank_benchmark.write_results_to_file(out_file_name)
-                        print("ppr", pers_page_rank_benchmark.get_metrics())
-
                     
                     max_steps = int(1000 * (G.number_of_nodes() ** 0.15))
                     # max_steps = 9
-                    if algorithm_options["run_random_walk_restarts"]:
-                        random_walk = RandomWalkRestarts(G_test, K, parallel=True, max_steps=max_steps, alpha=0.8)
-                        random_walk_benchmark = Benchmark(random_walk, G, G_test, h, positive_test_edges, DATASET.name)
-                        random_walk_benchmark.run()
-                        random_walk_benchmark.write_results_to_file(out_file_name)
-
-                    if algorithm_options["run_random_walk_restarts_global_pool"]:
-                        random_walk_global_pool = RandomWalkRestartsGlobalPool(G_test, edges_to_find, parallel=True, max_steps=max_steps, alpha=0.8)
-                        random_walk_global_pool_benchmark = Benchmark(random_walk_global_pool, G, G_test, h, positive_test_edges, DATASET.name)
-                        random_walk_global_pool_benchmark.run()
-                        random_walk_global_pool_benchmark.write_results_to_file(out_file_name)
-
-                    if algorithm_options["run_random_walk_restarts_sbm"]:
-                        random_walk_sbm = RandomWalkRestartsSBM(G_test, edges_to_find, parallel=True, max_steps=max_steps, alpha=0.8, bipartite=is_bipartite)
-                        random_walk_sbm_benchmark = Benchmark(random_walk_sbm, G, G_test, h, positive_test_edges, DATASET.name)
-                        random_walk_sbm_benchmark.run()
-                        random_walk_sbm_benchmark.write_results_to_file(out_file_name)
 
                     if algorithm_options["run_dappr"]:
                         dappr = Dappr(G_test, edges_to_find, parallel=True, alpha=0.8, bipartite=is_bipartite)
@@ -266,63 +233,6 @@ def multirun(
                         dappr_benchmark.write_results_to_file(out_file_name)
                         print("dappr", dappr_benchmark.get_metrics())
                     
-
-                    if algorithm_options["run_random_walk_restarts_pregel"]:
-                        random_walk_pregel = RandomWalkRestartsPregel(G_test, edges_to_find, parallel=True, alpha=0.8, bipartite=is_bipartite)
-                        random_walk_pregel_benchmark = Benchmark(random_walk_pregel, G, G_test, h, positive_test_edges, DATASET.name)
-                        random_walk_pregel_benchmark.run()
-                        random_walk_pregel_benchmark.write_results_to_file(out_file_name)
-                        print("pregel", random_walk_pregel_benchmark.get_metrics())
-
-                    if algorithm_options["run_random_walk_restarts_pregel_sbm"]:
-                        random_walk_pregel_sbm = RandomWalkRestartsPregelSBM(G_test, edges_to_find, parallel=True, alpha=0.98, bipartite=is_bipartite)
-                        random_walk_pregel_sbm_benchmark = Benchmark(random_walk_pregel_sbm, G, G_test, h, positive_test_edges, DATASET.name)
-                        random_walk_pregel_sbm_benchmark.run()
-                        random_walk_pregel_sbm_benchmark.write_results_to_file(out_file_name)
-
-                    # %%
-                    if algorithm_options["run_combo"]:
-
-                        class LW_with_RWR(CandidateSelectionAlgorithm):
-
-                            def __init__(self, union: bool, lw: LinkWaldo, rwr: RandomWalkRestarts):
-                                self.union = union
-
-                                lw_links = set(lw.get_unique_predicted_links())
-                                rwr_links = set(rwr.get_unique_predicted_links())
-                                
-                                if union:
-                                    self.predicted_links = lw_links.union(rwr_links)
-                                    
-                                else:
-                                    self.predicted_links = lw_links.intersection(rwr_links)
-                            
-                            def get_name(self):
-                                return self.__class__.__name__ + ('_union' if self.union else '_intersection')
-
-                            def run(self):
-                                return self.predicted_links
-
-                            def get_predicted_links(self):
-                                return self.predicted_links
-
-                            def get_n_scanned(self) -> int:
-                                return len(self.predicted_links)
-
-                            def get_input_params(self) -> dict:
-                                return {**lw_benchmark.algorithm.get_input_params(), **random_walk_pregel_benchmark.algorithm.get_input_params()} # Merge dicts
-                            
-                            def get_unique_predicted_links(self):
-                                return self.predicted_links
-
-                        merged_benchmark_union = Benchmark(LW_with_RWR(G, True, lw, random_walk_pregel), G_test, h, positive_test_edges, DATASET.name)
-                        merged_benchmark_union.run()
-                        merged_benchmark_union.write_results_to_file(out_file_name)
-
-                        merged_benchmark_intersection = Benchmark(LW_with_RWR(G, False, lw, random_walk_pregel), G_test, h, positive_test_edges, DATASET.name)
-                        merged_benchmark_intersection.run()
-                        merged_benchmark_intersection.write_results_to_file(out_file_name)
-
                     # %% [markdown]
                     # ## Delete LinkWaldo embeddings
 
@@ -342,12 +252,12 @@ def multirun(
 
 if __name__ == "__main__":
     datasets = [
+            Datasets.US_AIR,
+            # Datasets.YEAST,
             # Datasets.DBLP,
             # Datasets.FACEBOOK1,
             # Datasets.HS_PROTEIN,
-            # Datasets.YEAST,
             # Datasets.POWER,
-            # Datasets.US_AIR,
             # Datasets.ROUTER,
             # Datasets.FACEBOOK2,
             # Datasets.MATH_OVERFLOW,
@@ -363,7 +273,7 @@ if __name__ == "__main__":
             # Datasets.OGB_COLLAB,
             # Datasets.OGB_CITATION2,
             # Datasets.AMAZON,
-            Datasets.ROADNET_PA,
+            # Datasets.ROADNET_PA,
             # Datasets.AS_SKITTER,
             # Datasets.OGB_CITATION2,
             # Datasets.ARXIV_CONDMAT,
@@ -371,64 +281,17 @@ if __name__ == "__main__":
         ]
     ranges = range(1,11)
     filename = "benchmarks-parallel.txt"
-    run_linear = True # One at a time
-    run_parallel = False # Parallel
 
-    # Run RWR+BFS sequentially
-    if run_linear:
-        multirun(
-            datasets, 
-            ranges, 
-            1, 
-            filename,
-            {
-                "run_personalized_page_rank": False,
-                "run_knn_simple": False,
-                "run_random_walk_restarts": False,
-                "run_random_walk_restarts_global_pool": False,
-                "run_random_walk_restarts_sbm": False,
-                "run_random_walk_restarts_pregel_sbm": False,
-
-                "run_bfs": False,
-                "run_random_walk_restarts_pregel": False,
-                "run_dappr": False,
-                "run_knn": False,
-                "run_link_waldo": True,
-                "run_combo": False,
-            }
-        )
-
-    
-    # # Run others in parallel
-    if run_parallel:
-        for dataset in datasets:
-            pool = multiprocessing.Pool(10)
-
-            pool.starmap(multirun,
-                list(
-                    zip(
-                        repeat([dataset]), 
-                        [range(i, i+1) for i in ranges], 
-                        repeat(1), 
-                        repeat(filename),
-                        repeat({
-                            "run_personalized_page_rank": False,
-                            "run_knn_simple": False,
-                            "run_random_walk_restarts": False,
-                            "run_random_walk_restarts_global_pool": False,
-                            "run_random_walk_restarts_sbm": False,
-                            "run_random_walk_restarts_pregel_sbm": False,
-
-                            "run_bfs": False,
-                            "run_random_walk_restarts_pregel": False,
-                            "run_dappr": False,
-                            "run_knn": False,
-                            "run_link_waldo": True,
-                            "run_combo": False,
-                        })
-                    )
-                )
-            )
-            
-            pool.close()
-            pool.join()
+    multirun(
+        datasets, 
+        ranges, 
+        1, 
+        filename,
+        {
+            "run_bfs": True,
+            "run_random_walk_restarts_pregel": True,
+            "run_dappr": True,
+            "run_knn": True,
+            "run_link_waldo": True,
+        }
+    )
