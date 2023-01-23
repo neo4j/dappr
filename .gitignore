@@ -1,0 +1,26 @@
+# Misc
+.DS_Store
+
+# Python
+__pycache__
+src/dataset/ogb*/*
+ramen/*/dataset/*
+src/pickles/*
+src/dataset/tsv
+
+# Latex ignores
+**.aux
+**.bbl
+**.bcf
+**.blg
+**.fdb_latexmk
+**.fls
+**.log
+**.run.xml
+**.synctex.gz
+**.toc
+**.out
+**.xdv
+
+# Exclude
+!src/dataset/ogb_reader.py

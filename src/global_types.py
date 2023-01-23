@@ -1,0 +1,1 @@
+EdgeList = list[(int, int)]
