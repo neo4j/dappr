@@ -1,14 +1,11 @@
-import sys
-
 from global_types import EdgeList
 from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
 from dataset.data_splitting import construct_x_y
 import optuna
 from sklearn.metrics import average_precision_score
-import networkx as nx
 from numpy import ndarray
-from typing import List, Tuple
+from typing import Tuple
 
 class LogisticRegressionTrainer:
     __MIN_DIM = 80

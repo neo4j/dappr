@@ -57,7 +57,7 @@ def multirun(
         SEED = 42
         FORCE_TRAIN_CLASSIFIER = True
         N_TRIALS = 1
-        ORACLE_TYPE = 'puro+perfect' # TODO: Change
+        ORACLE_TYPE = 'puro+perfect'
         EMBEDDINGS_TYPE="netmf2"
 
         # %% [markdown]

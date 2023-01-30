@@ -4,6 +4,7 @@ from src.candidate_selection.benchmarking.benchmark_reader import BenchmarkReade
 
 
 class BenchmarkMigration:
+    """Used for reformatting benchmark data."""
     def __init__(self, old_file_name, new_file_name, dataset, algorithm_names) -> None:
         if old_file_name == new_file_name:
             raise "Old and new file name are the same"

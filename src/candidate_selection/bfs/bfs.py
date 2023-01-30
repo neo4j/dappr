@@ -24,11 +24,7 @@ def iterate(inputs: tuple[nx.Graph, int, int | None, int]) -> None:
         return v, candidates
 
 class Bfs(CandidateSelectionAlgorithm):
-    """ 
-    TODO: Investigate score threshold for link to count as predicted.
-    NOTE: Parallel is slower than sequential.
-    """
-
+    """Selects candidates for each node by combining the query node with it's 2nd+ degree neighbors."""
     def __init__(self, G: nx.Graph, K: int | None, parallel=True, verbose=True, max_depth=4):
         self.input_params = locals()
         self.exclude_params = ["self", "G", "score_links"]

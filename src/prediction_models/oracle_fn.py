@@ -1,14 +1,9 @@
 from graph_utils import get_latent_similarities
-import sys
-sys.path.insert(1, '../')
-
-import numpy as np
-from global_types import EdgeList
 
 def select_oracle(oracle_type, clf, embeddings, positive_test_edges):
     if oracle_type == 'puro':
         def oracle_fn(X):
-            return clf.predict_proba(get_latent_similarities(embeddings, X)) #TODO: Rename latent
+            return clf.predict_proba(get_latent_similarities(embeddings, X))
 
     elif oracle_type == 'puro+perfect':
         positive_test_edges_set = set(positive_test_edges)

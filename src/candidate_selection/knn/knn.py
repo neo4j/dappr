@@ -84,7 +84,7 @@ class Knn(CandidateSelectionAlgorithm):
         
 
         if self.K**2 > G.number_of_nodes():
-            print('WARNING: k^2 > v. Running KNN wll be slower than running exhaustive search.')
+            print('WARNING: k^2 > v. Running KNN will be slower than running exhaustive search.')
 
     def set_seed(self, seed):
         np.random.seed(seed)

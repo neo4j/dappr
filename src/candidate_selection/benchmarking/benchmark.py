@@ -8,6 +8,7 @@ from datetime import date
 import networkx as nx
 
 class Benchmark:
+    """Wrapper class for candidate selection algorithms. Used for obtaining the benchmark results for an algorithm run."""
     predicted_links: set[(int, int)]
     positive_test_edges: set[(int, int)]
     G_test: nx.Graph

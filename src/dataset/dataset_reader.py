@@ -18,7 +18,7 @@ class Datasets(Enum):
     HS_PROTEIN = "hs_protein",
     YEAST = "yeast",
 
-    # Static tsv
+    # Static .tsv
     AS_SKITTER = "as-skitter",
     ROADNET_PA = "roadNet-PA",
     ROADNET_CA = "roadNet-CA",

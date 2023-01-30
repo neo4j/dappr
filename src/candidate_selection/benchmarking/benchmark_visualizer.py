@@ -12,6 +12,7 @@ from itertools import groupby
 
 
 class BenchmarkVisualizer:
+    """Generates plots and figures to visualize benchmark results."""
 
     def __init__(self, file_name="benchmarks.txt") -> None:
         self.__benchmarks: list[BenchmarkResult] = BenchmarkReader(file_name).read()
@@ -47,9 +48,6 @@ class BenchmarkVisualizer:
             Datasets.AMAZON,
             Datasets.ROADNET_PA,
         ]
-
-        best_recall_on_datasets_counts = defaultdict(lambda: 0)
-        best_tplp_on_datasets_counts = defaultdict(lambda: 0)
 
         for dataset in datasets:
             dataset = dataset.name

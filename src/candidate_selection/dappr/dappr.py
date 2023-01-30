@@ -9,10 +9,9 @@ from tqdm import tqdm
 import numpy as np
 import math
 
-def rwr_func(inputs):
-    pi_prev, q, alpha, neighbors_q, sbm_factor = inputs #neighbors_v = inputs
+def iteration(inputs):
+    pi_prev, q, alpha, neighbors_q, sbm_factor = inputs
     
-    # (1 - alpha) * e_q
     pi_q = defaultdict(lambda: 0.0)
     pi_q[q] = 1-alpha
 
@@ -22,7 +21,6 @@ def rwr_func(inputs):
     k = len(neighbors_q) * sbm_factor
     truncation = math.ceil(k*20)
 
-    # alpha * [X(w, t-1) / len(N(q)) for w in N(v)
     frac = (alpha / len(neighbors_q))
 
     for v in neighbors_q:
@@ -98,7 +96,7 @@ class Dappr(CandidateSelectionAlgorithm):
 
         # Add global pool
         print("Total k:", total_k)
-        print("Adding global pool, missing links:", self.__k - len(links), "has", len(links))
+        print("Adding global pool. Amount of missing links:", self.__k - len(links), ". Amount of links:", len(links))
         if len(links) < self.__k:
             global_pool.sort(key=lambda x: x[1], reverse=True)
 
@@ -115,14 +113,14 @@ class Dappr(CandidateSelectionAlgorithm):
         
     def run(self) -> EdgeList:
 
-        for iteration in range(1, 10):
+        for iteration in range(1, 10): # Rarely takes more than 10 iterations to converge. Increase if needed.
 
             if self.__parallel and self.__G.number_of_nodes() > 3000:
                 pool = multiprocessing.Pool(multiprocessing.cpu_count())
                 results = list(
-                    tqdm(pool.imap_unordered(rwr_func, [
+                    tqdm(pool.imap_unordered(iteration, [
                         (
-                            {node: self.__pi[node] for node in list(self.__G.neighbors(q)) + [q]},
+                            { node: self.__pi[node] for node in list(self.__G.neighbors(q)) + [q] },
                             q,
                             self.__alpha, 
                             list(self.__G.neighbors(q)),
@@ -137,7 +135,7 @@ class Dappr(CandidateSelectionAlgorithm):
 
             else:
                 results = list(
-                    tqdm(map(rwr_func, [
+                    tqdm(map(iteration, [
                         (
                             {neigh: self.__pi[neigh] for neigh in list(self.__G.neighbors(q)) + [q]},
                             q, 
@@ -162,18 +160,12 @@ class Dappr(CandidateSelectionAlgorithm):
 
                 self.__pi[q] = pi_q
             print("Took total time: ", time.time() - start_time, "iteration", iteration)
-            print("Total abs SQRTMSE:", delta, "Total distance:", total_distance, "mse/dist:", delta/total_distance)
-            # print("Total MSE:", total_mse, "Total distance:", total_distance, "mse/dist:", total_mse/total_distance)
-            # print("dappr", _, sorted(self.__pi[0], key=lambda x: x[0])[:10])
+            print("Total abs SQRTMSE:", delta, "Total distance:", total_distance, "mse/distance:", delta/total_distance)
+
             if delta / total_distance < self.__epsilon and iteration >= 3:
-                print("breaking at iter ", iteration)
+                print("Breaking at iteration:", iteration)
                 break
             
-        # Normalize pi
-        # for q in self.__pi:
-        #     total = sum(prob for _, prob in self.__pi[q])
-        #     self.__pi[q] = [(node, prob/total) for node, prob in self.__pi[q]]
-        # print("dappr", _, sorted(self.__pi[0], key=lambda x: x[0])[:10])
 
 
         return self.get_predicted_links()

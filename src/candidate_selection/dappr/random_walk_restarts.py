@@ -75,7 +75,7 @@ class RandomWalkRestarts(CandidateSelectionAlgorithm):
     def run(self) -> EdgeList:
         if self.__parallel:
             pool = multiprocessing.Pool(multiprocessing.cpu_count())
-            res = list(tqdm( # tqdm for progress bar
+            res = list(tqdm(
                 pool.imap_unordered(rwr_func, [(self.__G, self.__K, v, self.__max_steps, self.__alpha, self.__bipartite) for v in self.__G.nodes()], chunksize=200),
                 total=self.__G.number_of_nodes()
             ))
@@ -84,7 +84,7 @@ class RandomWalkRestarts(CandidateSelectionAlgorithm):
             pool.join()
 
         else:
-            res = list(tqdm( # tqdm for progress bar
+            res = list(tqdm(
                 map(rwr_func, [(self.__G, self.__K, v, self.__max_steps, self.__alpha, self.__bipartite) for v in self.__G.nodes()]),
                 total=self.__G.number_of_nodes()
             ))

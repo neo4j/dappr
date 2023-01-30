@@ -30,6 +30,7 @@ class BenchmarkResult(TypedDict):
     parameters: Parameters
 
 class BenchmarkReader:
+    "Used for parsing benchmark data in .txt files."
 
     def __init__(self, file_name: str = "benchmarks.txt") -> None:
         root_dir = os.path.dirname(os.path.abspath(__file__))
