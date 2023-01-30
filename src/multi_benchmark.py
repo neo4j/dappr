@@ -101,7 +101,7 @@ def multirun(
         positive_test_edges = [(node_labels[str(u)], node_labels[str(v)]) for u, v in positive_test_edges]
 
         try:
-            if algorithm_options["run_knn"]:
+            if "run_knn" in algorithm_options and algorithm_options["run_knn"]:
                 pickle_path = f"pickles/{DATASET.name}_{EMBEDDINGS_TYPE}_logistic_regression_{G}.pkl"
                 if FORCE_TRAIN_CLASSIFIER or not os.path.exists(pickle_path):
 
@@ -178,7 +178,7 @@ def multirun(
                     # %% [markdown]
                     # ### Simple KNN
 
-                    if algorithm_options["run_knn"]:
+                    if "run_knn" in algorithm_options and algorithm_options["run_knn"]:
                         if knn_prev_scan_rate < 1:
                             knn = Knn(G_test, edges_to_find, oracle_fn, clf_best_accuracy, sample_rate=0.75, delta=0.0001, p_random_neighbors=1.0, max_iterations=40, parallel=False, verbose=False) # Parallel not recommended
                             knn_benchmark = Benchmark(knn, G, G_test, h, positive_test_edges, DATASET.name)
@@ -188,7 +188,7 @@ def multirun(
                         else:
                             print("Skipping KNN because scan rate is greater than 1")
 
-                    if algorithm_options["run_knn_simple"]:
+                    if "run_knn_simple" in algorithm_options and algorithm_options["run_knn_simple"]:
                         K = int(np.ceil(edges_to_find / G_test.number_of_nodes()))
                         if knn_simple_prev_scan_rate < 1:
                             knn_simple = KnnSimple(G_test, K, oracle_fn, clf_best_accuracy, delta=0.1, max_iterations=20, verbose=False)
@@ -199,7 +199,7 @@ def multirun(
                         else:
                             print("Skipping KNN_simple because scan rate is greater than 1")
 
-                    if algorithm_options["run_link_waldo"]:
+                    if "run_link_waldo" in algorithm_options and algorithm_options["run_link_waldo"]:
                         # %%
                         embedding = EMBEDDINGS_TYPE
                         if is_bipartite:
@@ -215,7 +215,7 @@ def multirun(
                         lw_benchmark.run()
                         lw_benchmark.write_results_to_file(out_file_name)
 
-                    if algorithm_options["run_bfs"]:
+                    if "run_bfs" in algorithm_options and algorithm_options["run_bfs"]:
                         # %%
                         K = int(np.ceil(edges_to_find / G_test.number_of_nodes()))
                         bfs = Bfs(G_test, K, parallel=False, max_depth=4) # Parallel not recommended
@@ -226,7 +226,7 @@ def multirun(
                     max_steps = int(1000 * (G.number_of_nodes() ** 0.15))
                     # max_steps = 9
 
-                    if algorithm_options["run_dappr"]:
+                    if "run_dappr" in algorithm_options and algorithm_options["run_dappr"]:
                         dappr = Dappr(G_test, edges_to_find, parallel=True, alpha=0.8, bipartite=is_bipartite)
                         dappr_benchmark = Benchmark(dappr, G, G_test, h, positive_test_edges, DATASET.name)
                         dappr_benchmark.run()

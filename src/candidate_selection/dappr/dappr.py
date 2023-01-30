@@ -9,7 +9,7 @@ from tqdm import tqdm
 import numpy as np
 import math
 
-def iteration(inputs):
+def iteration_func(inputs):
     pi_prev, q, alpha, neighbors_q, sbm_factor = inputs
     
     pi_q = defaultdict(lambda: 0.0)
@@ -118,7 +118,7 @@ class Dappr(CandidateSelectionAlgorithm):
             if self.__parallel and self.__G.number_of_nodes() > 3000:
                 pool = multiprocessing.Pool(multiprocessing.cpu_count())
                 results = list(
-                    tqdm(pool.imap_unordered(iteration, [
+                    tqdm(pool.imap_unordered(iteration_func, [
                         (
                             { node: self.__pi[node] for node in list(self.__G.neighbors(q)) + [q] },
                             q,
@@ -135,7 +135,7 @@ class Dappr(CandidateSelectionAlgorithm):
 
             else:
                 results = list(
-                    tqdm(map(iteration, [
+                    tqdm(map(iteration_func, [
                         (
                             {neigh: self.__pi[neigh] for neigh in list(self.__G.neighbors(q)) + [q]},
                             q, 
