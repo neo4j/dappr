@@ -27,7 +27,6 @@ import os
 
 
 class LinkWaldo(CandidateSelectionAlgorithm):
-    """Based on the paper https://www.cs.princeton.edu/cass/papers/www11.pdf"""
     __G: nx.Graph
     __n_scanned: int
     candidate_links: EdgeList
