@@ -14,7 +14,8 @@ def parse_args():
     
     parser = argparse.ArgumentParser(description='Run DAPPR to extract candidate node pairs.')
     parser.add_argument('--edgelist-path', type=str, required=True, help="Relative path to edgelist representing the graph.")
-    parser.add_argument('--k', '-k', type=int, required=True, help="Number of candidate node pairs to generate per node.")
+    parser.add_argument('--c', '-c', type=int, required=True, help="Max number of candidate pairs to output.")
+    parser.add_argument('--lambd', '-l', type=int, required=False, default=40, help="Smaller lambda increases approximation error, but yields faster run time. Increase lambda if too few results are given.")
     parser.add_argument('--alpha', '-a', type=float, required=False, default=0.8, help="Non-restart probability.")
     parser.add_argument('--epsilon', '-e', type=float, required=False, default=0.05, help="Error threshold.")
     parser.add_argument('--parallel', '-p', type=str2bool, required=False, default=True, help="Run parallel processes.")
@@ -27,7 +28,7 @@ def main(args):
     cwd = os.getcwd()
     edgelist_path = os.path.join(cwd, args.edgelist_path)
     G = nx.read_edgelist(edgelist_path)
-    dappr = Dappr(G, args.k, args.epsilon, args.alpha, args.parallel, args.verbose, args.bipartite)
+    dappr = Dappr(G, args.c, args.epsilon, args.alpha, args.parallel, args.verbose, args.bipartite, args.lambd)
     candidate_node_pairs = dappr.run()
     output_path = os.path.join(cwd, args.out)
     if '.' not in output_path:

@@ -10,7 +10,7 @@ import numpy as np
 import math
 
 def iteration_func(inputs):
-    pi_prev, q, alpha, neighbors_q, sbm_factor = inputs
+    pi_prev, q, alpha, neighbors_q, sbm_factor, lambd = inputs
     
     pi_q = defaultdict(lambda: 0.0)
     pi_q[q] = 1-alpha
@@ -19,7 +19,7 @@ def iteration_func(inputs):
         return [(q, 1-alpha)], q
 
     k = len(neighbors_q) * sbm_factor
-    truncation = math.ceil(k*20)
+    truncation = math.ceil(k*lambd)
 
     frac = (alpha / len(neighbors_q))
 
@@ -33,21 +33,22 @@ def iteration_func(inputs):
 
 class Dappr(CandidateSelectionAlgorithm):
 
-    def __init__(self, G: nx.Graph, k: int, epsilon: float=0.05, alpha: float=0.8, parallel=True, verbose=True, bipartite=False):
+    def __init__(self, G: nx.Graph, c: int, epsilon: float=0.05, alpha: float=0.8, parallel=True, verbose=True, bipartite=False, lambd=20):
         self.input_params = locals()
         self.exclude_params = ["self", "G"]
 
         self.__verbose = verbose
         self.__parallel = parallel
         self.__G = G
-        self.__k = k
+        self.__c = c
         self.__epsilon = epsilon
         self.__alpha = alpha
-        self.__avg_edges_to_predict_per_node = (k / G.number_of_nodes())
+        self.__avg_edges_to_predict_per_node = (c / G.number_of_nodes())
         self.__avg_degree = (2*G.number_of_edges()) / G.number_of_nodes() # 2*edges due to Undirected
         self.__sbm_factor = self.__avg_edges_to_predict_per_node / self.__avg_degree
         self.__bipartite = bipartite
         self.__alpha = alpha
+        self.__lambd = lambd
         
 
         self.__pi = {node: [(node, 1)] for node in G.nodes()}
@@ -96,12 +97,12 @@ class Dappr(CandidateSelectionAlgorithm):
 
         # Add global pool
         print("Total k:", total_k)
-        print("Adding global pool. Amount of missing links:", self.__k - len(links), ". Amount of links:", len(links))
-        if len(links) < self.__k:
+        print("Adding candidate pairs from global pool. Amount of missing links:", self.__c - len(links), ". Amount of links:", len(links))
+        if len(links) < self.__c:
             global_pool.sort(key=lambda x: x[1], reverse=True)
 
             for (u, v), prob in global_pool:
-                if len(links) == self.__k:
+                if len(links) == self.__c:
                     break
                     
                 if (u, v) in links or (v, u) in links:
@@ -125,6 +126,7 @@ class Dappr(CandidateSelectionAlgorithm):
                             self.__alpha, 
                             list(self.__G.neighbors(q)),
                             self.__sbm_factor,
+                            self.__lambd,
                         ) 
                     for q in self.__G.nodes()],
                     chunksize=5000), total=self.__G.number_of_nodes())
@@ -142,6 +144,7 @@ class Dappr(CandidateSelectionAlgorithm):
                             self.__alpha, 
                             list(self.__G.neighbors(q)),
                             self.__sbm_factor,
+                            self.__lambd,
                         ) 
                     for q in self.__G.nodes()],
                     ), total=self.__G.number_of_nodes()),

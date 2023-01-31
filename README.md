@@ -20,7 +20,7 @@ Tools for vizualizing the results are available in `src/graphs.ipynb`.
 DAPPR can be run in `src/main.py`. Example:
 
 ```
-python main.py --edgelist-path "dataset/static/yeast.txt" --k 1000 --parallel y -out candidate_node_pairs.csv
+python main.py --edgelist-path "dataset/static/yeast.txt" --c 1000 --lambd 40 --parallel y -out candidate_node_pairs.csv
 ```
 
 This example runs the `YEAST` dataset and outputs the candidate node pairs to a csv file named `candidate_node_pairs.csv`.
